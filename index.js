@@ -2,26 +2,7 @@ const rp = require('request-promise')
 const chalk = require('chalk')
 const moment = require('moment')
 const lookup = require('./lookup')
-
-let obj = {
-  log: (...msg) => {
-    process.stdout.write(` ${chalk.yellow('[debug]')} ${chalk.gray(moment().format('YYYY-MM-DD HH:mm:ss:SSS') + ' |')} ${msg.join(' ')}`)
-    return obj
-  },
-  append: (...msg) => {
-    process.stdout.write(msg.join(' '))
-    return obj
-  },
-  end: () => {
-    process.stdout.write(`\n`)
-    return obj
-  }
-}
-const debug = {
-  log: obj.log,
-  append: obj.append,
-  end: obj.end
-}
+const debug = require('./lib/debug')
 
 const request = rp.defaults({
   method: 'POST',
@@ -169,8 +150,9 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.log(`GetPeriod checking: `)
   let period = await getPeriod()
   for (const option of period) {
-    // let date = moment(option)
-    // if (date > moment().startOf('day')) continue
+    let date = moment(option)
+    if (date > moment().startOf('day')) continue
+
     debug.append(chalk.cyan(option))
     let id = await getFirstTimesheetID(username, option)
     let status = await getStatusTimesheet(id)
