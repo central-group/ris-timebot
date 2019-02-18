@@ -4,20 +4,23 @@ const moment = require('moment')
 const lookup = require('./lookup')
 
 let obj = {
+  log: (...msg) => {
+    process.stdout.write(` ${chalk.yellow('[debug]')} ${chalk.gray(moment().format('YYYY-MM-DD HH:mm:ss:SSS') + ' |')} ${msg.join(' ')}`)
+    return obj
+  },
   append: (...msg) => {
     process.stdout.write(msg.join(' '))
     return obj
   },
   end: () => {
     process.stdout.write(`\n`)
+    return obj
   }
 }
 const debug = {
-  log: (...msg) => {
-    process.stdout.write(` ${chalk.yellow('[debug]')} ${chalk.gray(moment().format('YYYY-MM-DD HH:mm:ss:SSS') + ' |')} ${msg.join(' ')}`)
-    return obj
-  },
-  append: obj.append
+  log: obj.log,
+  append: obj.append,
+  end: obj.end
 }
 
 const request = rp.defaults({
@@ -67,8 +70,67 @@ const getUser = async (User) => {
   }
 }
 
+const getFirstTimesheetID = async (User, Period) => {
+  let res = await request({
+    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetFirstTimesheetID',
+    body: { User, Period }
+  })
+  if (!res.d) throw new Error('Timereport getFirstTimesheetID is undefined.')
+  return res.d
+}
+
+const getStatusTimesheet = async (TimeSheetID) => {
+  let res = await request({
+    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetStatusTimesheet',
+    body: { TimeSheetID }
+  })
+  if (!res.d) throw new Error('Timereport GetStatusTimesheet is undefined.')
+
+  const status = {
+    '11_': 'OK',
+    '14_': 'Approved'
+  }
+  return {
+    id: res.d,
+    state: status[res.d]
+  }
+}
+
+const getSearchJobMaster = async (User, TimeSheetID) => {
+  let res = await request({
+    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetSearchJobMaster',
+    body: { User, TimeSheetID }
+  })
+  if (!res.d) throw new Error('Timereport GetSearchJobMaster is undefined.')
+  return (res.d.match(/<option.*?option>/ig) || []).map(period => {
+    let [ , value, label ] = /value='(.+?)'.*?>(.+?)</ig.exec(period)
+    return { value, label }
+  })
+}
+
+const getTJobInTimeSheet = async (TimeSheetID) => {
+  let res = await request({
+    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetTJobInTimeSheet',
+    body: { TimeSheetID }
+  })
+  if (!res.d) throw new Error('Timereport GetTJobInTimeSheet is undefined.')
+  return (res.d.match(/<option.*?option>/ig) || []).map(period => {
+    let [ , value, label ] = /value='(.+?)'.*?>(.+?)</ig.exec(period)
+    return { value, label }
+  })
+}
+
+const insertJobTimeSheetDetail = async (TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex) => {
+  let res = await request({
+    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/InsertJobTimeSheetDetail',
+    body: { TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex }
+  })
+  if (!res.d) throw new Error('Timereport InsertJobTimeSheetDetail is undefined.')
+  return res.d
+}
 let username = '18000922'
 let password = '18000922'
+let job = '14P120001'
 lookup('rshdtimessrv01').then(async dns => {
   debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${chalk.blue(dns.address)}`).end()
   debug.log(`GetUserLogin: `)
@@ -77,15 +139,39 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.append(chalk.green('SUCCESS')).end()
   debug.log(`Welcome: ${chalk.cyan(user.name)} Department: ${chalk.cyan(user.depart)}`).end()
   debug.log(`Approver: ${chalk.cyan(user.approver)}`).end()
-  debug.log(`GetPeriod checking approved: `)
+  debug.log(`GetPeriod checking: `)
   let period = await getPeriod()
   for (const option of period) {
-    let date = moment(option)
-    if (date > moment().startOf('day')) continue
-    debug.append(chalk.cyan(option)).end()
-
+    // let date = moment(option)
+    // if (date > moment().startOf('day')) continue
+    debug.append(chalk.cyan(option))
+    let id = await getFirstTimesheetID(username, option)
+    let status = await getStatusTimesheet(id)
+    if (status.state === 'OK') {
+      let master = await getSearchJobMaster(username, id)
+      debug.end()
+      debug.log(`SearchJobMaster: ${job} `)
+      let getMaster = master[master.map(o => o.value).indexOf(job)]
+      if (getMaster) {
+        debug.append(`- ${getMaster.label}`).end()
+        // insertJobTimeSheetDetail
+      } else {
+        let table = await getTJobInTimeSheet(id)
+        let getUser = table[table.map(o => o.value).indexOf(job)]
+        if (!getUser) {
+          debug.append(`is ${chalk.red(`not found`)} in master jobs or user job.`).end()
+          throw new Error('JobID worng.')
+        }
+        debug.append(`- ${getUser.label}`).end()
+      }
+      // updateTimeSheetTable
+      debug.log(`${chalk.green('System all green')}, Automation is begin...`)
+    } else {
+      debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
+    }
     break
   }
 }).catch(ex => {
-  debug.append(`${chalk.red('FAIL')} (${ex.message})`).end()
+  debug.end().log(`CATCH >> ${chalk.red('FAIL')} (${ex.message})`).end()
+  debug.append('  ' + chalk.gray(ex.stack))
 })
