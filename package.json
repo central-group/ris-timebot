@@ -1,12 +1,12 @@
 {
-  "name": "ris-timesheet-bot",
+  "name": "ris-timebot",
   "version": "1.0.0",
   "description": "Bot approve time sheet automatic.",
   "main": "index.js",
   "scripts": {
     "test": "mocha",
     "dev": "env-cmd .env backpack dev",
-    "build": "backpack build && nexe dist/main.js",
+    "build": "backpack build",
     "eslint": "eslint --ext .js --ignore-path .gitignore ."
   },
   "devDependencies": {
@@ -25,6 +25,12 @@
     "mocha": "^5.2.0",
     "youch": "^2.0.10",
     "youch-terminal": "^1.0.0"
+  },
+  "bin": "dist/main.js",
+  "pkg": {
+    "targets": [
+      "node10"
+    ]
   },
   "repository": {
     "type": "git",
