@@ -119,13 +119,21 @@ const getTJobInTimeSheet = async (TimeSheetID) => {
     return { value, label }
   })
 }
-const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User) => {
+const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User, OptionID) => {
   let res = await request({
     uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetTimeSheetData',
     body: { TimeSheetID, PeriodID, Status, User }
   })
   if (!res.d) throw new Error('Timereport GetTimeSheetData is undefined.')
-  return res.d
+  let data = res.d.match(/<td.*?td>/ig).filter(opt => {
+    let regex = new RegExp(`<td.class=''.*?R_${OptionID}`, 'ig')
+    return regex.test(opt)
+  }).map(opt => {
+    let [ , value, colLabel, rowLabel, colValue, rowValue ] = /value='(.*?)'.*?CalculateAndSaveData\("(.*?)".*?"(.*?)".*?"(.*?)".*?"(.*?)"/ig.exec(opt) || []
+    return { val: value, col: colValue, row: rowValue, colLabel, rowLabel }
+  })
+  if (!data || data.length === 0) throw new Error('Timereport GetTimeSheetData column CalculateAndSaveData is undefined.')
+  return data
 }
 
 const insertJobTimeSheetDetail = async (TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex) => {
@@ -177,7 +185,10 @@ lookup('rshdtimessrv01').then(async dns => {
       // updateTimeSheetTable
       debug.log(`${chalk.green('System all green')}, Automation is begin...`).end()
       // get data table
-      await getTimeSheetData(id, option, status.id, username)
+      let input = await getTimeSheetData(id, option, status.id, username, job)
+      for (const data of input) {
+        console.log(data)
+      }
     } else {
       debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
     }
