@@ -119,6 +119,14 @@ const getTJobInTimeSheet = async (TimeSheetID) => {
     return { value, label }
   })
 }
+const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User) => {
+  let res = await request({
+    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetTimeSheetData',
+    body: { TimeSheetID, PeriodID, Status, User }
+  })
+  if (!res.d) throw new Error('Timereport GetTimeSheetData is undefined.')
+  return res.d
+}
 
 const insertJobTimeSheetDetail = async (TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex) => {
   let res = await request({
@@ -156,7 +164,8 @@ lookup('rshdtimessrv01').then(async dns => {
       if (getMaster) {
         debug.append(`- ${getMaster.label}`).end()
         // insertJobTimeSheetDetail
-        await insertJobTimeSheetDetail(id, job, option, status.id, username, table.length + 1)
+        let bugRowId = 2
+        await insertJobTimeSheetDetail(id, job, option, status.id, username, table.length + 1 + bugRowId)
       } else {
         let getUser = table[table.map(o => o.value).indexOf(job)]
         if (!getUser) {
@@ -166,7 +175,9 @@ lookup('rshdtimessrv01').then(async dns => {
         debug.append(`- ${getUser.label}`).end()
       }
       // updateTimeSheetTable
-      debug.log(`${chalk.green('System all green')}, Automation is begin...`)
+      debug.log(`${chalk.green('System all green')}, Automation is begin...`).end()
+      // get data table
+      await getTimeSheetData(id, option, status.id, username)
     } else {
       debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
     }
