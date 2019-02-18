@@ -152,11 +152,12 @@ lookup('rshdtimessrv01').then(async dns => {
       debug.end()
       debug.log(`SearchJobMaster: ${job} `)
       let getMaster = master[master.map(o => o.value).indexOf(job)]
+      let table = await getTJobInTimeSheet(id)
       if (getMaster) {
         debug.append(`- ${getMaster.label}`).end()
         // insertJobTimeSheetDetail
+        await insertJobTimeSheetDetail(id, job, option, status.id, username, table.length + 1)
       } else {
-        let table = await getTJobInTimeSheet(id)
         let getUser = table[table.map(o => o.value).indexOf(job)]
         if (!getUser) {
           debug.append(`is ${chalk.red(`not found`)} in master jobs or user job.`).end()
