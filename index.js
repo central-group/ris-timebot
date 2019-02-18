@@ -1,47 +1,24 @@
-const rp = require('request-promise')
 const chalk = require('chalk')
 const moment = require('moment')
-const lookup = require('./lookup')
+const lookup = require('./lib/lookup')
 const debug = require('./lib/debug')
-
-const request = rp.defaults({
-  method: 'POST',
-  json: true,
-  headers: {
-    'Accept': 'application/json, text/javascript, */*; q=0.01',
-    'Content-Type': 'application/json',
-    'Cookie': 'ASP.NET_SessionId=obmcbss0rt3rj4tcw5y5bb34',
-    'Host': 'rshdtimessrv01',
-    'Origin': 'http://rshdtimessrv01',
-    'Referer': 'http://rshdtimessrv01/Timereport/login.aspx',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36',
-    'X-Requested-With': 'XMLHttpRequest'
-  }
-})
+const request = require('./lib/request')
 
 const getUserLogin = async (User, Password) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/Login.aspx/GetUserLogin',
-    body: { User, Password }
-  })
+  let res = await request('GetUserLogin', { User, Password }, 'Login.aspx')
   if (!res.d) throw new Error(`Timereport GetUserLogin is undefined.`)
   if (res.d !== 'Success') throw new Error(`Can't Login.`)
   return res.d === 'Success'
 }
 
 const getPeriod = async () => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetPeriod'
-  })
+  let res = await request('GetPeriod')
   if (!res.d) throw new Error('Timereport GetPeriod is undefined.')
   return res.d.match(/value='(.+?)'/ig).map(period => /value='(.+?)'/ig.exec(period)[1])
 }
 
 const getUser = async (User) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetUser',
-    body: { User }
-  })
+  let res = await request('GetUser', { User })
   if (!res.d) throw new Error('Timereport GetUser is undefined.')
   let [ , name, depart, approver ] = /:(.*?)&.*?:(.*?)&.*?:(.*)/ig.exec(res.d) || []
   return {
@@ -52,36 +29,21 @@ const getUser = async (User) => {
 }
 
 const getFirstTimesheetID = async (User, Period) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetFirstTimesheetID',
-    body: { User, Period }
-  })
+  let res = await request('GetFirstTimesheetID', { User, Period })
   if (!res.d) throw new Error('Timereport getFirstTimesheetID is undefined.')
   return res.d
 }
 
 const getStatusTimesheet = async (TimeSheetID) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetStatusTimesheet',
-    body: { TimeSheetID }
-  })
+  let res = await request('GetStatusTimesheet', { TimeSheetID })
   if (!res.d) throw new Error('Timereport GetStatusTimesheet is undefined.')
 
-  const status = {
-    '11_': 'OK',
-    '14_': 'Approved'
-  }
-  return {
-    id: res.d,
-    state: status[res.d]
-  }
+  const status = { '11_': 'OK', '14_': 'Approved' }
+  return { id: res.d, state: status[res.d] }
 }
 
 const getSearchJobMaster = async (User, TimeSheetID) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetSearchJobMaster',
-    body: { User, TimeSheetID }
-  })
+  let res = await request('GetSearchJobMaster', { User, TimeSheetID })
   if (!res.d) throw new Error('Timereport GetSearchJobMaster is undefined.')
   return (res.d.match(/<option.*?option>/ig) || []).map(period => {
     let [ , value, label ] = /value='(.+?)'.*?>(.+?)</ig.exec(period)
@@ -90,10 +52,7 @@ const getSearchJobMaster = async (User, TimeSheetID) => {
 }
 
 const getTJobInTimeSheet = async (TimeSheetID) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetTJobInTimeSheet',
-    body: { TimeSheetID }
-  })
+  let res = await request('GetTJobInTimeSheet', { TimeSheetID })
   if (!res.d) throw new Error('Timereport GetTJobInTimeSheet is undefined.')
   return (res.d.match(/<option.*?option>/ig) || []).map(period => {
     let [ , value, label ] = /value='(.+?)'.*?>(.+?)</ig.exec(period)
@@ -101,10 +60,7 @@ const getTJobInTimeSheet = async (TimeSheetID) => {
   })
 }
 const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User, OptionID) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/GetTimeSheetData',
-    body: { TimeSheetID, PeriodID, Status, User }
-  })
+  let res = await request('GetTimeSheetData', { TimeSheetID, PeriodID, Status, User })
   if (!res.d) throw new Error('Timereport GetTimeSheetData is undefined.')
   let data = res.d.match(/<td.*?td>/ig).filter(opt => {
     let regex = new RegExp(`<td.class=''.*?R_${OptionID}`, 'ig')
@@ -118,19 +74,13 @@ const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User, OptionID) =
 }
 
 const insertJobTimeSheetDetail = async (TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/InsertJobTimeSheetDetail',
-    body: { TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex }
-  })
+  let res = await request('InsertJobTimeSheetDetail', { TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex })
   if (!res.d) throw new Error('Timereport InsertJobTimeSheetDetail is undefined.')
   return res.d
 }
 
 const updateTimeSheetLineTrans = async (Value, LindID, Column) => {
-  let res = await request({
-    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/UpdateTimeSheetLineTrans',
-    body: { Value, LindID, Column }
-  })
+  let res = await request('UpdateTimeSheetLineTrans', { Value, LindID, Column })
   if (!res.d) throw new Error('Timereport UpdateTimeSheetLineTrans is undefined.')
   return res.d === 'Success'
 }
