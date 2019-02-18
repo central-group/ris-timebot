@@ -144,9 +144,20 @@ const insertJobTimeSheetDetail = async (TimeSheetID, ProjectID, PeriodID, Status
   if (!res.d) throw new Error('Timereport InsertJobTimeSheetDetail is undefined.')
   return res.d
 }
+
+const updateTimeSheetLineTrans = async (Value, LindID, Column) => {
+  let res = await request({
+    uri: 'http://rshdtimessrv01/Timereport/TimeReport/timereportV2.1.aspx/UpdateTimeSheetLineTrans',
+    body: { Value, LindID, Column }
+  })
+  if (!res.d) throw new Error('Timereport UpdateTimeSheetLineTrans is undefined.')
+  return res.d === 'Success'
+}
+
 let username = '18000922'
 let password = '18000922'
 let job = '14P120001'
+let hour = '8'
 lookup('rshdtimessrv01').then(async dns => {
   debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${chalk.blue(dns.address)}`).end()
   debug.log(`GetUserLogin: `)
@@ -187,8 +198,17 @@ lookup('rshdtimessrv01').then(async dns => {
       // get data table
       let input = await getTimeSheetData(id, option, status.id, username, job)
       for (const data of input) {
-        console.log(data)
+        if (data.val === '') {
+          let res = await updateTimeSheetLineTrans(hour, data.row, data.col)
+          if (!res) {
+            debug.log(`Automation timesheet update ${chalk.red('fail')}.`).end()
+            throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
+          }
+        }
       }
+
+      // Approved call api.
+      debug.log(`Automation timesheet update ${chalk.green('successful')}.`).end()
     } else {
       debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
     }
