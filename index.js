@@ -1,4 +1,5 @@
 const chalk = require('chalk')
+const args = require('args')
 const moment = require('moment')
 const lookup = require('./lib/lookup')
 const debug = require('./lib/debug')
@@ -89,64 +90,74 @@ let username = '18000922'
 let password = '18000922'
 let job = '14P120001'
 let hour = '8'
-lookup('rshdtimessrv01').then(async dns => {
-  debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${chalk.blue(dns.address)}`).end()
-  debug.log(`GetUserLogin: `)
-  await getUserLogin(username, password)
-  let user = await getUser(username)
-  debug.append(chalk.green('SUCCESS')).end()
-  debug.log(`Welcome: ${chalk.cyan(user.name)} Department: ${chalk.cyan(user.depart)}`).end()
-  debug.log(`Approver: ${chalk.cyan(user.approver)}`).end()
-  debug.log(`GetPeriod checking: `)
-  let period = await getPeriod()
-  for (const option of period) {
-    let date = moment(option)
-    if (date > moment().startOf('day')) continue
 
-    debug.append(chalk.cyan(option))
-    let id = await getFirstTimesheetID(username, option)
-    let status = await getStatusTimesheet(id)
-    if (status.state === 'OK') {
-      let master = await getSearchJobMaster(username, id)
-      debug.end()
-      debug.log(`SearchJobMaster: ${job} `)
-      let getMaster = master[master.map(o => o.value).indexOf(job)]
-      let table = await getTJobInTimeSheet(id)
-      if (getMaster) {
-        debug.append(`- ${getMaster.label}`).end()
-        // insertJobTimeSheetDetail
-        let bugRowId = 2
-        await insertJobTimeSheetDetail(id, job, option, status.id, username, table.length + 1 + bugRowId)
-      } else {
-        let getUser = table[table.map(o => o.value).indexOf(job)]
-        if (!getUser) {
-          debug.append(`is ${chalk.red(`not found`)} in master jobs or user job.`).end()
-          throw new Error('JobID worng.')
-        }
-        debug.append(`- ${getUser.label}`).end()
-      }
-      // updateTimeSheetTable
-      debug.log(`${chalk.green('System all green')}, Automation is begin...`).end()
-      // get data table
-      let input = await getTimeSheetData(id, option, status.id, username, job)
-      for (const data of input) {
-        if (data.val === '') {
-          let res = await updateTimeSheetLineTrans(hour, data.row, data.col)
-          if (!res) {
-            debug.log(`Automation timesheet update ${chalk.red('fail')}.`).end()
-            throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
-          }
-        }
-      }
+ 
+args.option('employee', 'timereport username', 0)
+args.option('job', 'timesheet job id', '')
+args.option('hour', 'hour append to job', 8)
+const flags = args.parse(process.argv)
 
-      // Approved call api.
-      debug.log(`Automation timesheet update ${chalk.green('successful')}.`).end()
-    } else {
-      debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
-    }
-    break
-  }
-}).catch(ex => {
-  debug.end().log(`CATCH >> ${chalk.red('FAIL')} (${ex.message})`).end()
-  debug.append('  ' + chalk.gray(ex.stack))
-})
+console.log('employee:', flags.employee)
+console.log('job:', flags.job)
+console.log('hour:', flags.hour)
+// lookup('rshdtimessrv01').then(async dns => {
+//   debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${chalk.blue(dns.address)}`).end()
+//   debug.log(`GetUserLogin: `)
+//   await getUserLogin(username, password)
+//   let user = await getUser(username)
+//   debug.append(chalk.green('SUCCESS')).end()
+//   debug.log(`Welcome: ${chalk.cyan(user.name)} Department: ${chalk.cyan(user.depart)}`).end()
+//   debug.log(`Approver: ${chalk.cyan(user.approver)}`).end()
+//   debug.log(`GetPeriod checking: `)
+//   let period = await getPeriod()
+//   for (const option of period) {
+//     let date = moment(option)
+//     if (date > moment().startOf('day')) continue
+
+//     debug.append(chalk.cyan(option))
+//     let id = await getFirstTimesheetID(username, option)
+//     let status = await getStatusTimesheet(id)
+//     if (status.state === 'OK') {
+//       let master = await getSearchJobMaster(username, id)
+//       debug.end()
+//       debug.log(`SearchJobMaster: ${job} `)
+//       let getMaster = master[master.map(o => o.value).indexOf(job)]
+//       let table = await getTJobInTimeSheet(id)
+//       if (getMaster) {
+//         debug.append(`- ${getMaster.label}`).end()
+//         // insertJobTimeSheetDetail
+//         let bugRowId = 2
+//         await insertJobTimeSheetDetail(id, job, option, status.id, username, table.length + 1 + bugRowId)
+//       } else {
+//         let getUser = table[table.map(o => o.value).indexOf(job)]
+//         if (!getUser) {
+//           debug.append(`is ${chalk.red(`not found`)} in master jobs or user job.`).end()
+//           throw new Error('JobID worng.')
+//         }
+//         debug.append(`- ${getUser.label}`).end()
+//       }
+//       // updateTimeSheetTable
+//       debug.log(`${chalk.green('System all green')}, Automation is begin...`).end()
+//       // get data table
+//       let input = await getTimeSheetData(id, option, status.id, username, job)
+//       for (const data of input) {
+//         if (data.val === '') {
+//           let res = await updateTimeSheetLineTrans(hour, data.row, data.col)
+//           if (!res) {
+//             debug.log(`Automation timesheet update ${chalk.red('fail')}.`).end()
+//             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
+//           }
+//         }
+//       }
+
+//       // Approved call api.
+//       debug.log(`Automation timesheet update ${chalk.green('successful')}.`).end()
+//     } else {
+//       debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
+//     }
+//     break
+//   }
+// }).catch(ex => {
+//   debug.end().log(`CATCH >> ${chalk.red('FAIL')} (${ex.message})`).end()
+//   debug.append('  ' + chalk.gray(ex.stack))
+// })

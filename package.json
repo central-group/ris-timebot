@@ -6,8 +6,7 @@
   "scripts": {
     "test": "mocha",
     "dev": "env-cmd .env backpack dev",
-    "build": "backpack build",
-    "start": "node dist/main.js --no-deprecation",
+    "build": "backpack build && nexe dist/main.js",
     "eslint": "eslint --ext .js --ignore-path .gitignore ."
   },
   "devDependencies": {
@@ -43,6 +42,7 @@
   },
   "homepage": "https://github.com/dvgamerr/ris-timesheet-bot#readme",
   "dependencies": {
+    "args": "^5.0.0",
     "chalk": "^2.4.2",
     "moment": "^2.24.0",
     "request": "^2.88.0",
