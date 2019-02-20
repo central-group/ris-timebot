@@ -10,11 +10,12 @@ Bot approve time sheet automatic.
 ```
 npm i -g pkg
 npm run build
-pkg
+pkg package.json
 ris-timebot --help
 ```
 
 ## How to run
 ```
-npm run dev
+// after complier
+ris-timebot --employee 18000922 --job 14P120001 --hour 8
 ```
