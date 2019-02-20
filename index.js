@@ -92,6 +92,10 @@ args.option('hour', 'hour append to job', 8)
 const { employee, job, hour } = args.parse(process.argv)
 
 lookup('rshdtimessrv01').then(async dns => {
+  if (employee === 0) throw new Error('Please set employee.')
+  if (job === '') throw new Error('Please set job id.')
+  if (hour < 1 || hour > 8) throw new Error('Please set hour range 1-8.')
+
   debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${chalk.blue(dns.address)}`).end()
   debug.log(`GetUserLogin: `)
   await getUserLogin(employee, employee)
