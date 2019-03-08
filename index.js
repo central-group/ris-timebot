@@ -74,6 +74,17 @@ const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User, OptionID) =
   return data
 }
 
+const GetTimeSheetDataSum = async (TimeSheetID, PeriodID) => {
+  let res = await request('GetTimeSheetDataSum', { TimeSheetID, PeriodID })
+  if (!res.d) throw new Error('Timereport GetTimeSheetDataSum is undefined.')
+  let data = res.d.match(/SumTotalTime.*?>.*?</ig).map(opt => {
+    let [ , col ] = />(.*?)</ig.exec(opt) || []
+    return parseInt(col)
+  })
+  if (!data || data.length === 0) throw new Error('Timereport GetTimeSheetData column CalculateAndSaveData is undefined.')
+  return data
+}
+
 const insertJobTimeSheetDetail = async (TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex) => {
   let res = await request('InsertJobTimeSheetDetail', { TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex })
   if (!res.d) throw new Error('Timereport InsertJobTimeSheetDetail is undefined.')
@@ -86,10 +97,19 @@ const updateTimeSheetLineTrans = async (Value, LindID, Column) => {
   return res.d === 'Success'
 }
 
+const UpdateTimeSheetSubmittedDate = async (TimeSheetID, User) => {
+  return request('UpdateTimeSheetSubmittedDate', { TimeSheetID, User })
+}
+
+const SendMailSubmitTime = async (TimeSheetID, User, Period) => {
+  return request('SendMailSubmitTime', { TimeSheetID, User, Period })
+}
+
 args.option('employee', 'timereport username', 0)
 args.option('job', 'timesheet job id', '')
 args.option('hour', 'hour append to job', 8)
-const { employee, job, hour } = args.parse(process.argv)
+args.option('submit', 'sumbit timesheet', false)
+const { employee, job, hour, submit } = args.parse(process.argv)
 
 lookup('rshdtimessrv01').then(async dns => {
   if (employee === 0) throw new Error('Please set employee.')
@@ -134,10 +154,12 @@ lookup('rshdtimessrv01').then(async dns => {
       // updateTimeSheetTable
       debug.log(`${chalk.green('System all green')}, Automation is begin...`).end()
       // get data table
+      let sum = await GetTimeSheetDataSum(id, option)
       let input = await getTimeSheetData(id, option, status.id, employee, job)
       for (const data of input) {
-        if (data.val === '') {
-          let res = await updateTimeSheetLineTrans(hour, data.row, data.col)
+        let add = hour - sum[data.col - 1]
+        if (data.val === '' && add > 0) {
+          let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
             debug.log(`Automation timesheet update ${chalk.red('fail')}.`).end()
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
@@ -147,6 +169,12 @@ lookup('rshdtimessrv01').then(async dns => {
 
       // Approved call api.
       debug.log(`Automation timesheet update ${chalk.green('successful')}.`).end()
+      if (submit) {
+        await UpdateTimeSheetSubmittedDate(id, employee)
+        debug.log(`- Timesheet submit ${chalk.green('successful')}.`).end()
+        await SendMailSubmitTime(id, employee, option)
+        debug.log(`- Timesheet email ${chalk.green('successful')}.`).end()
+      }
     } else {
       debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
     }
