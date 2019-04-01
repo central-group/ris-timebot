@@ -54,7 +54,7 @@ const getSearchJobMaster = async (User, TimeSheetID) => {
 
 const getTJobInTimeSheet = async (TimeSheetID) => {
   let res = await request('GetTJobInTimeSheet', { TimeSheetID })
-  if (!res.d) throw new Error('Timereport GetTJobInTimeSheet is undefined.')
+  // if (!res.d) throw new Error('Timereport GetTJobInTimeSheet is undefined.')
   return (res.d.match(/<option.*?option>/ig) || []).map(period => {
     let [ , value, label ] = /value='(.+?)'.*?>(.+?)</ig.exec(period)
     return { value, label }
