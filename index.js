@@ -120,7 +120,7 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.log(`GetUserLogin: `)
   await getUserLogin(employee, employee)
   let user = await getUser(employee)
-  debug.append(chalk.green('SUCCESS')).end()
+  debug.append(chalk.green('SUCCESS')).end('start')
   debug.log(`Welcome: ${chalk.cyan(user.name)} Department: ${chalk.cyan(user.depart)}`).end()
   debug.log(`Approver: ${chalk.cyan(user.approver)}`).end()
   debug.log(`GetPeriod checking: `)
@@ -168,19 +168,19 @@ lookup('rshdtimessrv01').then(async dns => {
       }
 
       // Approved call api.
-      debug.log(`Automation timesheet update ${chalk.green('successful')}.`).end()
+      debug.log(`Automation timesheet update ${chalk.green('successful')}.`).end('success')
       if (submit) {
         await UpdateTimeSheetSubmittedDate(id, employee)
-        debug.log(`- Timesheet submit ${chalk.green('successful')}.`).end()
+        debug.log(`- Timesheet submit ${chalk.green('successful')}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
-        debug.log(`- Timesheet email ${chalk.green('successful')}.`).end()
+        debug.log(`- Timesheet email ${chalk.green('successful')}.`).end('info')
       }
     } else {
-      debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end()
+      debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end('info')
     }
     break
   }
 }).catch(ex => {
-  debug.end().log(`CATCH >> ${chalk.red('FAIL')} (${ex.message})`).end()
+  debug.end().log(`CATCH >> ${chalk.red('FAIL')} (${ex.message})`).end('error')
   debug.append('  ' + chalk.gray(ex.stack))
 })
