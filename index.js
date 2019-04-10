@@ -1,4 +1,3 @@
-const chalk = require('chalk')
 const args = require('args')
 const moment = require('moment')
 const lookup = require('./lib/lookup')
@@ -116,20 +115,20 @@ lookup('rshdtimessrv01').then(async dns => {
   if (job === '') throw new Error('Please set job id.')
   if (hour < 1 || hour > 8) throw new Error('Please set hour range 1-8.')
 
-  debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${chalk.blue(dns.address)}`).end()
+  debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${dns.address}`).end()
   debug.log(`GetUserLogin: `)
   await getUserLogin(employee, employee)
   let user = await getUser(employee)
-  debug.append(chalk.green('SUCCESS')).end('start')
-  debug.log(`Welcome: ${chalk.cyan(user.name)} Department: ${chalk.cyan(user.depart)}`).end()
-  debug.log(`Approver: ${chalk.cyan(user.approver)}`).end()
+  debug.append('SUCCESS').end('start')
+  debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
+  debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
     if (date > moment().startOf('day')) continue
 
-    debug.append(chalk.cyan(option))
+    debug.append(option)
     let id = await getFirstTimesheetID(employee, option)
     let status = await getStatusTimesheet(id)
     if (status.state === 'OK') {
@@ -146,13 +145,13 @@ lookup('rshdtimessrv01').then(async dns => {
       } else {
         let getUser = table[table.map(o => o.value).indexOf(job)]
         if (!getUser) {
-          debug.append(`is ${chalk.red(`not found`)} in master jobs or user job.`).end()
+          debug.append(`is ${`not found`} in master jobs or user job.`).end()
           throw new Error('JobID worng.')
         }
         debug.append(`- ${getUser.label}`).end()
       }
       // updateTimeSheetTable
-      debug.log(`${chalk.green('System all green')}, Automation is begin...`).end()
+      debug.log(`${'System all green'}, Automation is begin...`).end()
       // get data table
       let sum = await GetTimeSheetDataSum(id, option)
       let input = await getTimeSheetData(id, option, status.id, employee, job)
@@ -161,26 +160,26 @@ lookup('rshdtimessrv01').then(async dns => {
         if (data.val === '' && add > 0) {
           let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
-            debug.log(`Automation timesheet update ${chalk.red('fail')}.`).end()
+            debug.log(`Automation timesheet update ${'fail'}.`).end()
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
         }
       }
 
       // Approved call api.
-      debug.log(`Automation timesheet update ${chalk.green('successful')}.`).end('success')
+      debug.log(`Automation timesheet update ${'successful'}.`).end('success')
       if (submit) {
         await UpdateTimeSheetSubmittedDate(id, employee)
-        debug.log(`- Timesheet submit ${chalk.green('successful')}.`).end('info')
+        debug.log(`- Timesheet submit ${'successful'}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
-        debug.log(`- Timesheet email ${chalk.green('successful')}.`).end('info')
+        debug.log(`- Timesheet email ${'successful'}.`).end('info')
       }
     } else {
-      debug.append(` >> ${chalk.underline.yellow(status.state)}.`).end('info')
+      debug.append(` >> ${status.state}.`).end('info')
     }
     break
   }
 }).catch(ex => {
-  debug.end().log(`CATCH >> ${chalk.red('FAIL')} (${ex.message})`).end('error')
-  debug.append('  ' + chalk.gray(ex.stack))
+  debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
+  debug.append('  ' + ex.stack)
 })
