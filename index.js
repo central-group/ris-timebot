@@ -1,8 +1,17 @@
 const args = require('args')
 const moment = require('moment')
+const req = require('request-promise')
 const lookup = require('./lib/lookup')
 const debug = require('./lib/debug')
 const request = require('./lib/request')
+const pkg = require('./package.json')
+
+const slackMessage = (message) => req({
+  url: `http://s-thcw-posweb01.pos.cmg.co.th:3000/slack/mii/server-monitor`,
+  method: 'PUT',
+  body: { username: `RIS TimeBot v${pkg.version}`, message },
+  json: true
+})
 
 const getUserLogin = async (User, Password) => {
   let res = await request('GetUserLogin', { User, Password }, 'Login.aspx')
@@ -123,6 +132,7 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
   debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
+  await slackMessage(`Daiy cheking timesheet approve ${user.name} (${user.depart}).`)
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
@@ -161,6 +171,7 @@ lookup('rshdtimessrv01').then(async dns => {
           let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
+            await slackMessage(`Unapproved timesheet update fail.`)
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
         }
@@ -173,6 +184,7 @@ lookup('rshdtimessrv01').then(async dns => {
         debug.log(`- Timesheet submit ${'successful'}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
+        await slackMessage(`Approve timesheet update successful.`)
       }
     } else {
       debug.append(` >> ${status.state}.`).end('info')
@@ -180,6 +192,7 @@ lookup('rshdtimessrv01').then(async dns => {
     break
   }
 }).catch(ex => {
+  slackMessage(`*${ex.message}*\n${ex.stack}`)
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
   debug.append('  ' + ex.stack)
 })
