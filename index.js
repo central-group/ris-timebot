@@ -1,12 +1,12 @@
 const args = require('args')
 const moment = require('moment')
-const req = require('request-promise')
+const rp = require('request-promise')
 const lookup = require('./lib/lookup')
 const debug = require('./lib/debug')
 const request = require('./lib/request')
 const pkg = require('./package.json')
 
-const slackMessage = (message) => req({
+const slackMessage = (message) => rp({
   url: `http://s-thcw-posweb01.pos.cmg.co.th:3000/slack/mii/server-monitor`,
   method: 'PUT',
   body: { username: `RIS TimeBot v${pkg.version}`, message },
@@ -47,7 +47,7 @@ const getStatusTimesheet = async (TimeSheetID) => {
   let res = await request('GetStatusTimesheet', { TimeSheetID })
   if (!res.d) throw new Error('Timereport GetStatusTimesheet is undefined.')
 
-  const status = { '11_': 'OK', '14_': 'Approved' }
+  const status = { '11_': 'OK', '12_': 'Submitted', '14_': 'Approved' }
   return { id: res.d, state: status[res.d] }
 }
 
@@ -114,25 +114,27 @@ const SendMailSubmitTime = async (TimeSheetID, User, Period) => {
 }
 
 args.option('employee', 'timereport username', 0)
+args.option('password', 'timereport username', 0)
 args.option('job', 'timesheet job id', '')
 args.option('hour', 'hour append to job', 8)
 args.option('submit', 'sumbit timesheet', false)
-const { employee, job, hour, submit } = args.parse(process.argv)
+const { employee, password, job, hour, submit } = args.parse(process.argv)
 
 lookup('rshdtimessrv01').then(async dns => {
   if (employee === 0) throw new Error('Please set employee.')
+  if (password === 0) throw new Error('Please set password.')
   if (job === '') throw new Error('Please set job id.')
   if (hour < 1 || hour > 8) throw new Error('Please set hour range 1-8.')
 
   debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${dns.address}`).end()
   debug.log(`GetUserLogin: `)
-  await getUserLogin(employee, employee)
+  await getUserLogin(employee, password)
   let user = await getUser(employee)
   debug.append('SUCCESS').end('start')
   debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
   debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
-  await slackMessage(`Daiy cheking timesheet approve ${user.name} (${user.depart}).`)
+  await slackMessage(`Daily cheking timesheet\n*${user.name}* (${user.depart}).`)
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
