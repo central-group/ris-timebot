@@ -193,7 +193,8 @@ lookup('rshdtimessrv01').then(async dns => {
     }
     break
   }
-  await teamsMessage(messageLog)
+  let res = await teamsMessage(messageLog)
+  if (res.error) throw new Error(res.error)
 }).catch(ex => {
   teamsMessage(`**${ex.message}**<br>${ex.stack}`)
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
