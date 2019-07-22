@@ -6,7 +6,7 @@ const debug = require('./lib/debug')
 const request = require('./lib/request')
 
 const teamsMessage = (text) => rp({
-  url: `http://posgateway.cmg.co.th:3000/teams/inspecter`,
+  url: `http://posgateway.cmg.co.th:3000/hook/teams/inspecter`,
   method: 'PUT',
   body: { text },
   json: true
@@ -134,7 +134,7 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
   debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
-  messageLog = `Daily cheking timesheet\n**${user.name}**.`
+  messageLog = `Daily cheking timesheet **${user.name}**.`
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
@@ -173,7 +173,7 @@ lookup('rshdtimessrv01').then(async dns => {
           let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
-            messageLog += `\nUnapproved timesheet update fail.`
+            messageLog += `<br>Unapproved timesheet update fail.`
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
         }
@@ -186,7 +186,7 @@ lookup('rshdtimessrv01').then(async dns => {
         debug.log(`- Timesheet submit ${'successful'}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
-        messageLog += `\nApprove timesheet update successful.`
+        messageLog += `<br>Approve timesheet update successful.`
       }
     } else {
       debug.append(` >> ${status.state}.`).end('info')
@@ -195,7 +195,7 @@ lookup('rshdtimessrv01').then(async dns => {
   }
   await teamsMessage(messageLog)
 }).catch(ex => {
-  teamsMessage(`*${ex.message}*\n${ex.stack}`)
+  teamsMessage(`**${ex.message}**<br>${ex.stack}`)
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
   debug.append('  ' + ex.stack)
 })
