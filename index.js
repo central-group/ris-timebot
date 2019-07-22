@@ -174,6 +174,8 @@ lookup('rshdtimessrv01').then(async dns => {
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
             messageLog += `<br>Unapproved timesheet update fail.`
+            await teamsMessage(messageLog)
+
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
         }
@@ -187,14 +189,15 @@ lookup('rshdtimessrv01').then(async dns => {
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
         messageLog += `<br>Approve timesheet update successful.`
+        await teamsMessage(messageLog)
       }
     } else {
+      let res = await teamsMessage(messageLog)
       debug.append(` >> ${status.state}.`).end('info')
+      if (res.error) throw new Error(res.error)
     }
     break
   }
-  let res = await teamsMessage(messageLog)
-  if (res.error) throw new Error(res.error)
 }).catch(ex => {
   teamsMessage(`**${ex.message}**<br>${ex.stack}`)
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
