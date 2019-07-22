@@ -4,12 +4,11 @@ const rp = require('request-promise')
 const lookup = require('./lib/lookup')
 const debug = require('./lib/debug')
 const request = require('./lib/request')
-const pkg = require('./package.json')
 
-const slackMessage = (message) => rp({
-  url: `http://s-thcw-posweb01.pos.cmg.co.th:3000/slack/mii/server-monitor`,
+const teamsMessage = (text) => rp({
+  url: `http://posgateway.cmg.co.th:3000/teams/inspecter`,
   method: 'PUT',
-  body: { username: `RIS TimeBot v${pkg.version}`, message },
+  body: { text },
   json: true
 })
 
@@ -120,6 +119,7 @@ args.option('hour', 'hour append to job', 8)
 args.option('submit', 'sumbit timesheet', false)
 const { employee, password, job, hour, submit } = args.parse(process.argv)
 
+let messageLog = ''
 lookup('rshdtimessrv01').then(async dns => {
   if (employee === 0) throw new Error('Please set employee.')
   if (password === 0) throw new Error('Please set password.')
@@ -134,7 +134,7 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
   debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
-  await slackMessage(`Daily cheking timesheet\n*${user.name}* (${user.depart}).`)
+  messageLog = `Daily cheking timesheet\n**${user.name}**.`
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
@@ -173,7 +173,7 @@ lookup('rshdtimessrv01').then(async dns => {
           let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
-            await slackMessage(`Unapproved timesheet update fail.`)
+            messageLog += `\nUnapproved timesheet update fail.`
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
         }
@@ -186,15 +186,16 @@ lookup('rshdtimessrv01').then(async dns => {
         debug.log(`- Timesheet submit ${'successful'}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
-        await slackMessage(`Approve timesheet update successful.`)
+        messageLog += `\nApprove timesheet update successful.`
       }
     } else {
       debug.append(` >> ${status.state}.`).end('info')
     }
     break
   }
+  await teamsMessage(messageLog)
 }).catch(ex => {
-  slackMessage(`*${ex.message}*\n${ex.stack}`)
+  teamsMessage(`*${ex.message}*\n${ex.stack}`)
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
   debug.append('  ' + ex.stack)
 })
