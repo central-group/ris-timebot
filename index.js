@@ -4,9 +4,10 @@ const rp = require('request-promise')
 const lookup = require('./lib/lookup')
 const debug = require('./lib/debug')
 const request = require('./lib/request')
+const pkg = require('./package.json')
 
 const teamsMessage = (text) => rp({
-  url: `http://s-thcw-posweb01.pos.cmg.co.th:3000/hook/teams/inspecter`,
+  url: `http://posgateway.cmg.co.th:3000/hook/teams/inspecter`,
   method: 'PUT',
   body: { text },
   json: true
@@ -174,7 +175,7 @@ lookup('rshdtimessrv01').then(async dns => {
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
             messageLog += `<br>Unapproved timesheet update fail.`
-            await teamsMessage(messageLog)
+            await teamsMessage(`**RIS-Timebot v${pkg.version}**<br>${messageLog}`)
 
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
@@ -189,10 +190,10 @@ lookup('rshdtimessrv01').then(async dns => {
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
         messageLog += `<br>Approve timesheet update successful.`
-        await teamsMessage(messageLog)
+        await teamsMessage(`**RIS-Timebot v${pkg.version}**<br>${messageLog}`)
       }
     } else {
-      let res = await teamsMessage(messageLog)
+      let res = await teamsMessage(`**RIS-Timebot v${pkg.version}**<br>${messageLog}`)
       debug.append(` >> ${status.state}.`).end('info')
       if (res.error) throw new Error(res.error)
     }
