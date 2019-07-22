@@ -6,7 +6,7 @@ const debug = require('./lib/debug')
 const request = require('./lib/request')
 
 const teamsMessage = (text) => rp({
-  url: `http://posgateway.cmg.co.th:3000/hook/teams/inspecter`,
+  url: `http://s-thcw-posweb01.pos.cmg.co.th:3000/hook/teams/inspecter`,
   method: 'PUT',
   body: { text },
   json: true
