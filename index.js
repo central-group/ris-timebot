@@ -6,10 +6,16 @@ const debug = require('./lib/debug')
 const request = require('./lib/request')
 const pkg = require('./package.json')
 
-const notifyMessage = (type = 'alert', message, detail) => rp({
-  url: `http://posgateway.cmg.co.th:3000/flex/${type}/U9e0a870c01ca97da20a4ec462bf72991`,
+const notifyMessage = (type = 'error', message, detail) => rp({
+  url: `http://posgateway.cmg.co.th:3000/flex/${type}/C06c9ae19898c9841c930b746ec0855c3`,
   method: 'PUT',
-  body: { app: `RIS-Timebot v${pkg.version}`, message, detail },
+  body: { app: `RIS-Timebot v${pkg.version}`, message: message.substr(0, 250), detail: detail.substr(0, 250) },
+  json: true
+})
+
+const notifyLog = (text) => rp({
+  url: `http://posgateway.cmg.co.th:3000/notify/health-check/slog`,
+  body: { message: `*RIS-Timebot v${pkg.version}*\n${text}` },
   json: true
 })
 
@@ -175,7 +181,7 @@ lookup('rshdtimessrv01').then(async dns => {
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
             messageLog += `<br>Unapproved timesheet update fail.`
-            await notifyMessage('alert', messageLog)
+            await notifyLog(messageLog)
 
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
@@ -190,10 +196,10 @@ lookup('rshdtimessrv01').then(async dns => {
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
         messageLog += `<br>Approve timesheet update successful.`
-        await notifyMessage('alert', messageLog)
+        await notifyLog(messageLog)
       }
     } else {
-      let res = await notifyMessage('alert', messageLog)
+      let res = await notifyLog(messageLog)
       debug.append(` >> ${status.state}.`).end('info')
       if (res.error) throw new Error(res.error)
     }
