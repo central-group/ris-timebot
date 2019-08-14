@@ -1,6 +1,6 @@
 {
   "name": "ris-timebot",
-  "version": "2.2.5",
+  "version": "2.2.6",
   "description": "Bot approve time sheet automatic.",
   "main": "dist/main.js",
   "scripts": {
