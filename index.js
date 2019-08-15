@@ -183,7 +183,7 @@ lookup('rshdtimessrv01').then(async dns => {
           let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
-            messageLog += `<br>Unapproved timesheet update fail.`
+            messageLog += `\n*Unapproved timesheet* update fail.`
             await notifyLog(messageLog)
 
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
@@ -198,7 +198,7 @@ lookup('rshdtimessrv01').then(async dns => {
         debug.log(`- Timesheet submit ${'successful'}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
-        messageLog += `<br>Approve timesheet update successful.`
+        messageLog += `\n*Approve timesheet* update successful.`
         await notifyLog(messageLog)
       }
     } else {
