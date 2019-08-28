@@ -16,8 +16,8 @@ const notifyMessage = (type = 'error', message, detail) => rp({
 const notifyLog = (text) => {
   return rp({
     method: 'PUT',
-    url: `http://posgateway.cmg.co.th:3000/notify/health-check/slog`,
-    body: { message: `*RIS-Timebot v${pkg.version}*\n${text}` },
+    url: `http://posgateway.cmg.co.th:3000/notify/log/slog`,
+    body: { message: `*RIS-Timebot v${pkg.version}* ... ${text}` },
     json: true
   })
 }
@@ -144,7 +144,7 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
   debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
-  messageLog = `Daily cheking timesheet *${user.name}* .`
+  messageLog = `Daily cheking timesheet *${user.name}*`
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
@@ -183,7 +183,7 @@ lookup('rshdtimessrv01').then(async dns => {
           let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
-            messageLog += `\n*Unapproved timesheet* update fail.`
+            messageLog += `, *Unapproved timesheet* update fail.`
             await notifyLog(messageLog)
 
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
@@ -198,10 +198,11 @@ lookup('rshdtimessrv01').then(async dns => {
         debug.log(`- Timesheet submit ${'successful'}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
-        messageLog += `\n*Approve timesheet* update successful.`
+        messageLog += `, *Approve timesheet* update successful.`
         await notifyLog(messageLog)
       }
     } else {
+      messageLog += ` >> ${status.state}.`
       let res = await notifyLog(messageLog)
       debug.append(` >> ${status.state}.`).end('info')
       if (res.error) throw new Error(res.error)
