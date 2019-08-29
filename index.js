@@ -144,7 +144,7 @@ lookup('rshdtimessrv01').then(async dns => {
   debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
   debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
-  messageLog = `Daily cheking timesheet *${user.name}*`
+  messageLog = `Daily timesheet *${user.name}* Checking`
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
@@ -202,7 +202,7 @@ lookup('rshdtimessrv01').then(async dns => {
         await notifyLog(messageLog)
       }
     } else {
-      messageLog += ` >> ${status.state}.`
+      messageLog += (status.state !== 'Approved') ? ` >> ${status.state}.` : '.'
       let res = await notifyLog(messageLog)
       debug.append(` >> ${status.state}.`).end('info')
       if (res.error) throw new Error(res.error)
