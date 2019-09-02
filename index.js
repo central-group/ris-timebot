@@ -56,7 +56,7 @@ const getStatusTimesheet = async (TimeSheetID) => {
   let res = await request('GetStatusTimesheet', { TimeSheetID })
   if (!res.d) throw new Error('Timereport GetStatusTimesheet is undefined.')
 
-  const status = { '11_': 'OK', '12_': 'Submitted', '14_': 'Approved' }
+  const status = { '11_': 'OK', '12_': 'Submitted / Wait Approver.', '14_': 'Approved' }
   return { id: res.d, state: status[res.d] }
 }
 
