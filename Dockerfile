@@ -1,11 +1,13 @@
-FROM node:12
+FROM node:lts
 
 WORKDIR /app
 
 COPY . /app
-RUN npm i -g pkg
 RUN npm i --production
-RUN npm run pack:linux
- 
-FROM alpine:3.7
-CMD [ "dist/pp-engine" ]
+
+FROM node:lts-alpine
+
+WORKDIR /app
+COPY . /app
+
+CMD [ "node", "index.js" ]
