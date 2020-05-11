@@ -2,32 +2,22 @@
   "name": "ris-timebot",
   "version": "2.2.11",
   "description": "Bot approve time sheet automatic.",
-  "main": "dist/main.js",
+  "main": "index.js",
   "scripts": {
-    "dev": "env-cmd .env backpack dev",
-    "build": "backpack build && npm run pack",
+    "dev": "node index.js --employee 18000922 --job 14P120001 --hour 8",
+    "build": "npm run pack",
     "pack": "pkg package.json --icon app.ico --output dist/ris-timebot.exe",
     "eslint": "eslint --ext .js --ignore-path .gitignore ."
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.3",
-    "babel-preset-latest": "^6.24.1",
-    "backpack-core": "^0.8.4",
     "env-cmd": "^8.0.2",
-    "eslint": "^5.16.0",
-    "eslint-config-standard": "^12.0.0",
-    "eslint-plugin-html": "^5.0.5",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-mocha": "^5.2.1",
-    "eslint-plugin-node": "^8.0.1",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1"
+    "eslint": "^5.16.0"
   },
-  "bin": "dist/main.js",
+  "bin": "index.js",
   "pkg": {
     "icon": "app.ico",
     "targets": [
-      "node10"
+      "node12"
     ]
   },
   "repository": {

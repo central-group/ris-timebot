@@ -7,7 +7,7 @@ const request = require('./lib/request')
 const pkg = require('./package.json')
 
 const notifyMessage = (type = 'error', message, detail) => rp({
-  url: `http://posgateway.cmg.co.th:3000/flex/${type}/C06c9ae19898c9841c930b746ec0855c3`,
+  url: `https://intense-citadel-55702.herokuapp.com/flex/${type}/C06c9ae19898c9841c930b746ec0855c3`,
   method: 'PUT',
   body: { app: `RIS-Timebot v${pkg.version}`, message: message.substr(0, 250), detail: detail.substr(0, 250) },
   json: true
@@ -16,7 +16,7 @@ const notifyMessage = (type = 'error', message, detail) => rp({
 const notifyLog = (text) => {
   return rp({
     method: 'PUT',
-    url: `http://posgateway.cmg.co.th:3000/notify/log/slog`,
+    url: `https://intense-citadel-55702.herokuapp.com/notify/log/slog`,
     body: { message: `*RIS-Timebot v${pkg.version}* ... ${text}` },
     json: true
   })
@@ -126,8 +126,9 @@ args.option('employee', 'timereport username', 0)
 args.option('password', 'timereport username', 0)
 args.option('job', 'timesheet job id', '')
 args.option('hour', 'hour append to job', 8)
+args.option('total', 'hour append to job', 96)
 args.option('submit', 'sumbit timesheet', false)
-const { employee, password, job, hour, submit } = args.parse(process.argv)
+const { employee, password, job, hour, total, submit } = args.parse(process.argv)
 
 let messageLog = ''
 lookup('rshdtimessrv01').then(async dns => {
@@ -177,6 +178,7 @@ lookup('rshdtimessrv01').then(async dns => {
       // get data table
       let sum = await GetTimeSheetDataSum(id, option)
       let input = await getTimeSheetData(id, option, status.id, employee, job)
+      let totalAdd = 0
       for (const data of input) {
         let add = hour - sum[data.col - 1]
         if (data.val === '' && add > 0) {
@@ -189,6 +191,8 @@ lookup('rshdtimessrv01').then(async dns => {
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
           }
         }
+        totalAdd += add
+        if (totalAdd >= total) break
       }
 
       // Approved call api.

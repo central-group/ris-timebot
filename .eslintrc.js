@@ -1,19 +1,17 @@
 module.exports = {
-  root: true,
-  env: { browser: true, node: true },
-  parserOptions: {
-    parser: 'babel-eslint'
-  },
-  extends: 'standard',
-  // required to lint *.vue files
-  plugins: [
-    'mocha',
-    'node'
-  ],
-  // add your custom rules here
-  rules: {
-    'mocha/no-exclusive-tests': 'error',
-    strict: 0
-  },
-  globals: {}
-}
+    "env": {
+        "commonjs": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": "eslint:recommended",
+    "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018
+    },
+    "rules": {
+    }
+};
