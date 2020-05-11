@@ -7,6 +7,7 @@
     "dev": "node index.js --employee 18000922 --job 14P120001 --hour 8",
     "build": "npm run pack",
     "pack": "pkg package.json --icon app.ico --output dist/ris-timebot.exe",
+    "pack:linux": "pkg package.json --icon app.ico --output dist/ris-timebot",
     "eslint": "eslint --ext .js --ignore-path .gitignore ."
   },
   "devDependencies": {

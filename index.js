@@ -122,18 +122,25 @@ const SendMailSubmitTime = async (TimeSheetID, User, Period) => {
   return request('SendMailSubmitTime', { TimeSheetID, User, Period })
 }
 
-args.option('employee', 'timereport username', 0)
-args.option('password', 'timereport username', 0)
+args.option('employee', 'timereport username', '')
+args.option('password', 'timereport username', '')
 args.option('job', 'timesheet job id', '')
 args.option('hour', 'hour append to job', 8)
 args.option('total', 'hour append to job', 96)
 args.option('submit', 'sumbit timesheet', false)
-const { employee, password, job, hour, total, submit } = args.parse(process.argv)
+let { employee, password, job, hour, total, submit } = args.parse(process.argv)
 
 let messageLog = ''
 lookup('rshdtimessrv01').then(async dns => {
-  if (employee === 0) throw new Error('Please set employee.')
-  if (password === 0) throw new Error('Please set password.')
+  employee = process.env.TIME_EMPLOYEE || employee
+  password = process.env.TIME_PASSWORD || password
+  job = process.env.TIME_JOB || job
+  hour = parseInt(process.env.TIME_HOUR) || hour
+  total = parseInt(process.env.TIME_TOTAL) || total
+  submit = (process.env.TIME_SUBMIT === 'true' ? true : null) || submit
+
+  if (employee === '') throw new Error('Please set employee.')
+  if (password === '') throw new Error('Please set password.')
   if (job === '') throw new Error('Please set job id.')
   if (hour < 1 || hour > 8) throw new Error('Please set hour range 1-8.')
 
