@@ -33,7 +33,7 @@ jobs:
     - name: Compile app
       run: npm run pack:linux
     - name: Timesheet push time.
-      run: ./ris-timebot
+      run: ./dist/ris-timebot
       env:
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
         TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
