@@ -40,10 +40,12 @@ jobs:
         name: ris-timebot
         path: dist/ris-timebot
     - name: Timesheet push time.
-      run: dist/ris-timebot --employee $EMPLOYEE_ID --password $EMPLOYEE_PWD --job $EMPLOYEE_JOB --hour 8 --submit
+      run: dist/ris-timebot
       env:
-        EMPLOYEE_ID: ${{ secrets.EMPLOYEE_ID }}
-        EMPLOYEE_PWD: ${{ secrets.EMPLOYEE_PWD }}
-        EMPLOYEE_JOB: ${{ secrets.EMPLOYEE_JOB }}
+        TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
+        TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
+        TIME_JOB: ${{ secrets.EMPLOYEE_JOB }}
+        TIME_HOUR: 8
+        TIME_SUBMIT: true
 
 
