@@ -1,8 +1,11 @@
 name: Schedule
 on:
+  push:
+    branches: [ master ]
   schedule:
   - cron: 0 8 * * *
   - cron: 0 18 * * *
+
 jobs:
   run:
     runs-on: ubuntu-latest
