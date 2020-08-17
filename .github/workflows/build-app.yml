@@ -42,14 +42,12 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
     - name: Download App
       uses: actions/download-artifact@master
       with:
         name: ris-timebot
-        path: dist/ris-timebot
     - name: Timesheet push time.
-      run: dist/ris-timebot
+      run: ris-timebot
       env:
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
         TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
