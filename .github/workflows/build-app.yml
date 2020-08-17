@@ -34,22 +34,11 @@ jobs:
       run: npm run eslint
     - name: Compile app
       run: npm run pack:linux
-    - run: ls -al dist/
     - name: Upload App
       uses: actions/upload-artifact@v2
       with:
         name: ris-timebot
         path: dist/ris-timebot
-  schedule:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/setup-node@v1
-      with:
-        node-version: 14
-    - name: Download ris-timebot
-      uses: actions/download-artifact@v2
-      with:
-        name: ris-timebot
     - name: Timesheet push time.
       shell: bash
       run: dist/ris-timebot --employee ${{ secrets.EMPLOYEE_ID }} --password ${{ secrets.EMPLOYEE_PWD }} --job ${{ secrets.EMPLOYEE_JOB }} --hour 8 --submit
