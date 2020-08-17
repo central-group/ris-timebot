@@ -1,4 +1,7 @@
-# ris-timesheet-bot
+# Timesheet bot for RIS at Central Group
+![Build](https://github.com/dvgamerr/ris-timebot/workflows/Build/badge.svg)
+
+
 Bot approve time sheet automatic.
 
 ## How to build Project
