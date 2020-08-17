@@ -44,12 +44,12 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Download App
-      uses: actions/download-artifact@master
+      uses: actions/download-artifact@v2
       with:
         name: ris-timebot
         path: ris-timebot
     - name: Timesheet push time.
-      run: ris-timebot
+      run: dist/ris-timebot
       env:
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
         TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
