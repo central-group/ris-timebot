@@ -42,10 +42,12 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@master
     - name: Download App
       uses: actions/download-artifact@master
       with:
         name: ris-timebot
+        path: ris-timebot
     - name: Timesheet push time.
       run: ris-timebot
       env:
