@@ -1,5 +1,5 @@
 # Timesheet bot for RIS at Central Group
-![Build](https://github.com/dvgamerr/ris-timebot/workflows/Build/badge.svg)
+![Build & Run Timebot](https://github.com/dvgamerr/ris-timebot/workflows/Build%20&%20Run%20Timebot/badge.svg)
 
 
 Bot approve time sheet automatic.
