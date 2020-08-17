@@ -1,5 +1,4 @@
 name: Build
-
 on:
   push:
     branches: [ master ]
@@ -40,32 +39,7 @@ jobs:
         path: dist/ris-timebot
 
   daily:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: Download App
-      uses: actions/download-artifact@master
-      with:
-        name: ris-timebot
-        path: dist/ris-timebot
-    - name: Timesheet push time.
-      run: dist/ris-timebot
-      env:
-        TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
-        TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
-        TIME_JOB: ${{ secrets.EMPLOYEE_JOB }}
-        TIME_HOUR: 8
-        TIME_SUBMIT: true
----
-name: Schedule
-on:
-  push:
-    branches: [ master ]
-  schedule:
-  - cron: 0 8,18 * * *
-
-jobs:
-  daily:
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
