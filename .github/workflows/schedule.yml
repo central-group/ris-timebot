@@ -7,7 +7,6 @@ on:
 
 jobs:
   daily:
-    needs: [build]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -15,7 +14,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ris-timebot
-        path: ris-timebot
+    - run: ls -al
     - name: Timesheet push time.
       run: ./ris-timebot
       env:
