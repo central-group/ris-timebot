@@ -2,8 +2,6 @@ name: Build
 on:
   push:
     branches: [ master ]
-  schedule:
-  - cron: 0 8,18 * * *
 
 jobs:
   build:
@@ -49,7 +47,7 @@ jobs:
         name: ris-timebot
         path: ris-timebot
     - name: Timesheet push time.
-      run: dist/ris-timebot
+      run: ./ris-timebot
       env:
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
         TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
