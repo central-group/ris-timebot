@@ -1,7 +1,9 @@
-name: Build
+name: Build & Run Timebot
 on:
   push:
     branches: [ master ]
+  schedule:
+  - cron: 0 18 * * *
 
 jobs:
   build:
@@ -30,24 +32,7 @@ jobs:
       run: npm run eslint
     - name: Compile app
       run: npm run pack:linux
-    - name: Upload App
-      uses: actions/upload-artifact@v2
-      with:
-        name: ris-timebot
-        path: dist/ris-timebot
-
-  daily:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: Download App
-      uses: actions/download-artifact@v2
-      with:
-        name: ris-timebot
-    - run: sudo -S chown -R $USER:$USER ./ris-timebot
     - name: Timesheet push time.
-      shell: bash
       run: ./ris-timebot
       env:
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
