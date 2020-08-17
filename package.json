@@ -12,7 +12,8 @@
   },
   "devDependencies": {
     "env-cmd": "^8.0.2",
-    "eslint": "^5.16.0"
+    "eslint": "^5.16.0",
+    "pkg": "^4.4.9"
   },
   "bin": "index.js",
   "pkg": {

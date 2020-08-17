@@ -131,7 +131,7 @@ args.option('submit', 'sumbit timesheet', false)
 let { employee, password, job, hour, total, submit } = args.parse(process.argv)
 
 let messageLog = ''
-lookup('rshdtimessrv01').then(async dns => {
+lookup('riste.central.co.th').then(async dns => {
   employee = process.env.TIME_EMPLOYEE || employee
   password = process.env.TIME_PASSWORD || password
   job = process.env.TIME_JOB || job
@@ -144,7 +144,7 @@ lookup('rshdtimessrv01').then(async dns => {
   if (job === '') throw new Error('Please set job id.')
   if (hour < 1 || hour > 8) throw new Error('Please set hour range 1-8.')
 
-  debug.log(`Server 'rshdtimessrv01' Login IPv${dns.family}: ${dns.address}`).end()
+  debug.log(`Server 'riste.central.co.th' Login IPv${dns.family}: ${dns.address}`).end()
   debug.log(`GetUserLogin: `)
   await getUserLogin(employee, password)
   let user = await getUser(employee)

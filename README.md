@@ -17,5 +17,5 @@ ris-timebot --help
 ## How to run
 ```
 // after complier
-ris-timebot --employee 18000922 --job 14P120001 --hour 8
+ris-timebot --employee 20065479 --password xxxxxx --job 20P180010 --hour 8 --submit
 ```
