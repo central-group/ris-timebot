@@ -1,6 +1,6 @@
 const args = require('args')
 const moment = require('moment')
-const rp = require('request-promise')
+const axios = require('axios')
 const lookup = require('./lib/lookup')
 const debug = require('./lib/debug')
 const request = require('./lib/request')
@@ -14,29 +14,28 @@ const pkg = require('./package.json')
 // })
 
 const notifyLog = (text) => {
-  return rp({
+  return axios({
     method: 'PUT',
     url: `https://intense-citadel-55702.herokuapp.com/notify/log/slog`,
-    body: { message: `*RIS-Timebot v${pkg.version}* ... ${text}` },
-    json: true
+    data: { message: `*RIS-Timebot v${pkg.version}* ... ${text}` }
   })
 }
 
 const getUserLogin = async (User, Password) => {
-  let res = await request('GetUserLogin', { User, Password }, 'Login.aspx')
+  let { data: res } = await request('GetUserLogin', { User, Password }, 'Login.aspx')
   if (!res.d) throw new Error(`Timereport GetUserLogin is undefined.`)
   if (res.d !== 'Success') throw new Error(`Can't Login.`)
   return res.d === 'Success'
 }
 
 const getPeriod = async () => {
-  let res = await request('GetPeriod')
+  let { data: res } = await request('GetPeriod')
   if (!res.d) throw new Error('Timereport GetPeriod is undefined.')
   return res.d.match(/value='(.+?)'/ig).map(period => /value='(.+?)'/ig.exec(period)[1])
 }
 
 const getUser = async (User) => {
-  let res = await request('GetUser', { User })
+  let { data: res } = await request('GetUser', { User })
   if (!res.d) throw new Error('Timereport GetUser is undefined.')
   let [ , name, depart, approver ] = /:(.*?)&.*?:(.*?)&.*?:(.*)/ig.exec(res.d) || []
   return {
@@ -47,13 +46,13 @@ const getUser = async (User) => {
 }
 
 const getFirstTimesheetID = async (User, Period) => {
-  let res = await request('GetFirstTimesheetID', { User, Period })
+  let { data: res } = await request('GetFirstTimesheetID', { User, Period })
   if (!res.d) throw new Error('Timereport getFirstTimesheetID is undefined.')
   return res.d
 }
 
 const getStatusTimesheet = async (TimeSheetID) => {
-  let res = await request('GetStatusTimesheet', { TimeSheetID })
+  let { data: res } = await request('GetStatusTimesheet', { TimeSheetID })
   if (!res.d) throw new Error('Timereport GetStatusTimesheet is undefined.')
 
   const status = { '11_': 'OK', '12_': 'Submitted / Wait Approver.', '14_': 'Approved' }
@@ -61,7 +60,7 @@ const getStatusTimesheet = async (TimeSheetID) => {
 }
 
 const getSearchJobMaster = async (User, TimeSheetID) => {
-  let res = await request('GetSearchJobMaster', { User, TimeSheetID })
+  let { data: res } = await request('GetSearchJobMaster', { User, TimeSheetID })
   if (!res.d) throw new Error('Timereport GetSearchJobMaster is undefined.')
   return (res.d.match(/<option.*?option>/ig) || []).map(period => {
     let [ , value, label ] = /value='(.+?)'.*?>(.+?)</ig.exec(period)
@@ -70,7 +69,7 @@ const getSearchJobMaster = async (User, TimeSheetID) => {
 }
 
 const getTJobInTimeSheet = async (TimeSheetID) => {
-  let res = await request('GetTJobInTimeSheet', { TimeSheetID })
+  let { data: res } = await request('GetTJobInTimeSheet', { TimeSheetID })
   // if (!res.d) throw new Error('Timereport GetTJobInTimeSheet is undefined.')
   return (res.d.match(/<option.*?option>/ig) || []).map(period => {
     let [ , value, label ] = /value='(.+?)'.*?>(.+?)</ig.exec(period)
@@ -78,7 +77,7 @@ const getTJobInTimeSheet = async (TimeSheetID) => {
   })
 }
 const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User, OptionID) => {
-  let res = await request('GetTimeSheetData', { TimeSheetID, PeriodID, Status, User })
+  let { data: res } = await request('GetTimeSheetData', { TimeSheetID, PeriodID, Status, User })
   if (!res.d) throw new Error('Timereport GetTimeSheetData is undefined.')
   let data = res.d.match(/<td.*?td>/ig).filter(opt => {
     let regex = new RegExp(`<td.class=''.*?R_${OptionID}`, 'ig')
@@ -92,7 +91,7 @@ const getTimeSheetData = async (TimeSheetID, PeriodID, Status, User, OptionID) =
 }
 
 const GetTimeSheetDataSum = async (TimeSheetID, PeriodID) => {
-  let res = await request('GetTimeSheetDataSum', { TimeSheetID, PeriodID })
+  let { data: res } = await request('GetTimeSheetDataSum', { TimeSheetID, PeriodID })
   if (!res.d) throw new Error('Timereport GetTimeSheetDataSum is undefined.')
   let data = res.d.match(/SumTotalTime.*?>.*?</ig).map(opt => {
     let [ , col ] = />(.*?)</ig.exec(opt) || []
@@ -103,13 +102,13 @@ const GetTimeSheetDataSum = async (TimeSheetID, PeriodID) => {
 }
 
 const insertJobTimeSheetDetail = async (TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex) => {
-  let res = await request('InsertJobTimeSheetDetail', { TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex })
+  let { data: res } = await request('InsertJobTimeSheetDetail', { TimeSheetID, ProjectID, PeriodID, Status, User, RowIndex })
   if (!res.d) throw new Error('Timereport InsertJobTimeSheetDetail is undefined.')
   return res.d
 }
 
 const updateTimeSheetLineTrans = async (Value, LindID, Column) => {
-  let res = await request('UpdateTimeSheetLineTrans', { Value, LindID, Column })
+  let { data: res } = await request('UpdateTimeSheetLineTrans', { Value, LindID, Column })
   if (!res.d) throw new Error('Timereport UpdateTimeSheetLineTrans is undefined.')
   return res.d === 'Success'
 }
@@ -121,17 +120,16 @@ const UpdateTimeSheetSubmittedDate = async (TimeSheetID, User) => {
 const SendMailSubmitTime = async (TimeSheetID, User, Period) => {
   return request('SendMailSubmitTime', { TimeSheetID, User, Period })
 }
-
-args.option('employee', 'timereport username', '')
-args.option('password', 'timereport username', '')
-args.option('job', 'timesheet job id', '')
+args.option('employee', 'timereport username', '20065479')
+args.option('password', 'timereport username', '18000922')
+args.option('job', 'timesheet job id', '20P180010')
 args.option('hour', 'hour append to job', 8)
 args.option('total', 'hour append to job', 96)
 args.option('submit', 'sumbit timesheet', false)
-let { employee, password, job, hour, total, submit } = args.parse(process.argv)
-
 let messageLog = ''
 lookup('riste.central.co.th').then(async dns => {
+  let { employee, password, job, hour, total, submit } = args.parse(process.argv)
+
   employee = process.env.TIME_EMPLOYEE || employee
   password = process.env.TIME_PASSWORD || password
   job = process.env.TIME_JOB || job
@@ -222,5 +220,7 @@ lookup('riste.central.co.th').then(async dns => {
   }
 }).catch(ex => {
   // notifyMessage('error', ex.response.uri.href, ex.stack)
+  // eslint-disable-next-line no-console
+  console.log(ex)
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
 })

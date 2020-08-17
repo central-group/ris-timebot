@@ -39,8 +39,7 @@
   "homepage": "https://github.com/dvgamerr/ris-timesheet-bot#readme",
   "dependencies": {
     "args": "^5.0.0",
-    "moment": "^2.24.0",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.4"
+    "axios": "^0.19.2",
+    "moment": "^2.24.0"
   }
 }
