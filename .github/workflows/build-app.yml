@@ -45,8 +45,8 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ris-timebot
-    - run: ls -al
     - name: Timesheet push time.
+      shell: bash
       run: ./ris-timebot
       env:
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
