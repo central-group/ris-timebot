@@ -45,6 +45,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ris-timebot
+    - run: sudo -S chown -R $USER:$USER ./ris-timebot
     - name: Timesheet push time.
       shell: bash
       run: ./ris-timebot
