@@ -6,17 +6,10 @@ const debug = require('./lib/debug')
 const request = require('./lib/request')
 const pkg = require('./package.json')
 
-// const notifyMessage = (type = 'error', message, detail) => rp({
-//   url: `https://intense-citadel-55702.herokuapp.com/flex/${type}/C06c9ae19898c9841c930b746ec0855c3`,
-//   method: 'PUT',
-//   body: { app: `RIS-Timebot v${pkg.version}`, message: message.substr(0, 250), detail: detail.substr(0, 250) },
-//   json: true
-// })
-
 const notifyLog = (text) => {
   return axios({
     method: 'PUT',
-    url: `https://intense-citadel-55702.herokuapp.com/notify/log/slog`,
+    url: `https://notice.touno.io/notify/ris/logs`,
     data: { message: `*RIS-Timebot v${pkg.version}* ... ${text}` }
   })
 }

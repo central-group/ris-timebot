@@ -15,7 +15,9 @@
     "eslint": "^5.16.0",
     "pkg": "^4.4.9"
   },
-  "bin": "index.js",
+  "bin": {
+    "ris-timebot": "index.js"
+  },
   "pkg": {
     "icon": "app.ico",
     "targets": [
