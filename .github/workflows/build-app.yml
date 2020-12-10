@@ -21,8 +21,6 @@ jobs:
         host: https://code.touno.io
         projectKey: ris-timebot
         projectVersion: v1.0.0
-        login: admin
-        password: 09694d0e39d8880b03f7408aa82a98a61366327a
     - name: Cache node modules
       uses: actions/cache@v2
       env:
