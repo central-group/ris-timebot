@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    if: github.event_name !== 'schedule'
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/setup-node@v1
@@ -40,8 +41,21 @@ jobs:
       run: npm run eslint
     - name: Compile app
       run: npm run pack:linux
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.1
+      with:
+        name: ris-timebot
+        path: ./dist/ris-timebot
+  trigger:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2
+      with:
+        path: ./
     - name: Timesheet push time.
-      run: ./dist/ris-timebot
+      run: ./ris-timebot
       env:
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
         TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
