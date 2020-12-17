@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "node index.js",
+    "start": "node index.js",
     "build": "npm run pack",
     "pack": "pkg package.json --icon app.ico --output dist/ris-timebot.exe",
     "pack:linux": "pkg package.json --icon app.ico --output dist/ris-timebot",
