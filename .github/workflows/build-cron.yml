@@ -54,7 +54,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: ris-timebot
-        path: ./dist/ris-timebot
+        path: ./
     - name: Timesheet push time.
       run: ./ris-timebot
       env:
