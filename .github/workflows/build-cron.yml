@@ -47,13 +47,14 @@ jobs:
         name: ris-timebot
         path: ./dist/ris-timebot
   trigger:
-    if: github.event_name == 'schedule'
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-18.04
     steps:
     - name: Download a Build Artifact
       uses: actions/download-artifact@v2
       with:
-        path: ./
+        name: ris-timebot
+        path: ./dist/ris-timebot
     - name: Timesheet push time.
       run: ./ris-timebot
       env:
