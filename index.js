@@ -9,8 +9,8 @@ const pkg = require('./package.json')
 const notifyLog = (text) => {
   return axios({
     method: 'PUT',
-    url: `https://notice.touno.io/notify/ris/logs`,
-    data: { message: `*RIS-Timebot v${pkg.version}* ... ${text}` }
+    url: `${process.env.NOTIFY}notify/ris/pdm`,
+    data: { message: text }
   })
 }
 
@@ -143,7 +143,7 @@ lookup('riste.central.co.th').then(async dns => {
   debug.log(`Welcome: ${user.name} Department: ${user.depart}`).end()
   debug.log(`Approver: ${user.approver}`).end('info')
   debug.log(`GetPeriod checking: `)
-  messageLog = `Daily timesheet *${user.name}* Checking`
+  messageLog = `Timesheet *${user.name}*`
   let period = await getPeriod()
   for (const option of period) {
     let date = moment(option)
@@ -183,7 +183,7 @@ lookup('riste.central.co.th').then(async dns => {
           let res = await updateTimeSheetLineTrans(add, data.row, data.col)
           if (!res) {
             debug.log(`Automation timesheet update ${'fail'}.`).end()
-            messageLog += `, *Unapproved timesheet* update fail.`
+            messageLog += `, *Unapproved* update timesheet fail.`
             await notifyLog(messageLog)
 
             throw new Error(`at Col:${data.colLabel} Row:${data.rowLabel}`)
@@ -200,11 +200,11 @@ lookup('riste.central.co.th').then(async dns => {
         debug.log(`- Timesheet submit ${'successful'}.`).end('info')
         await SendMailSubmitTime(id, employee, option)
         debug.log(`- Timesheet email ${'successful'}.`).end('info')
-        messageLog += `, *Approve timesheet* update successful.`
+        messageLog += `, *Approved* write timesheet successful.`
         await notifyLog(messageLog)
       }
-    } else {
-      messageLog += (status.state !== 'Approved') ? ` >> ${status.state}.` : '.'
+    } else if (status.state !== 'Approved') {
+      messageLog += ` >> ${status.state}.`
       let res = await notifyLog(messageLog)
       debug.append(` >> ${status.state}.`).end('info')
       if (res.error) throw new Error(res.error)
@@ -212,8 +212,13 @@ lookup('riste.central.co.th').then(async dns => {
     break
   }
 }).catch(ex => {
-  // notifyMessage('error', ex.response.uri.href, ex.stack)
   // eslint-disable-next-line no-console
-  console.log(ex)
+  console.log()
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
+
+  await axios({
+    method: 'PUT',
+    url: `${process.env.NOTIFY}notify/ris/error`,
+    data: { message: `*RIS-Timebot v${pkg.version}* ${ex.message}${ex.stack ? `\n\n${ex.stack}` : '.'}` }
+  })
 })

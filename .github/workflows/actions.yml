@@ -7,18 +7,37 @@ on:
 
 jobs:
   build:
-    if: github.event_name != 'schedule'
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
-    - name: SonarQube Scan
-      # You may pin to the exact commit or the version.
-      # uses: kitabisa/sonarqube-action@a40c5bc8f6f33b9e0d5035caf5910807ce1d554d
-      uses: kitabisa/sonarqube-action@v1.1.0
+    - uses: actions/setup-node@v1
       with:
-        host: https://code.touno.io
-        projectKey: ris-timebot
-        projectVersion: v1.0.0
+        node-version: 14
+    - name: Cache node modules
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-node-modules
+      with:
+        # npm cache files are stored in `~/.npm` on Linux/macOS
+        path: ~/.npm
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+    - name: Install Dependencies
+      run: npm i
+    - name: ESLint in Project
+      run: npm run eslint
+    # - name: SonarQube Scan
+    #   # You may pin to the exact commit or the version.
+    #   # uses: kitabisa/sonarqube-action@a40c5bc8f6f33b9e0d5035caf5910807ce1d554d
+    #   uses: kitabisa/sonarqube-action@v1.1.0
+    #   with:
+    #     host: https://code.touno.io
+    #     projectKey: ris-timebot
+    #     projectVersion: v1.0.0
 
   trigger:
     if: github.event_name == 'schedule'
@@ -43,11 +62,10 @@ jobs:
 
     - name: Install Dependencies
       run: npm i
-    - name: ESLint in Project
-      run: npm run eslint
     - name: Timesheet push time.
       run: npm start
       env:
+        NOTIFY: https://notice.touno.io/
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
         TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
         TIME_JOB: ${{ secrets.EMPLOYEE_JOB }}

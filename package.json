@@ -12,8 +12,8 @@
     "eslint": "eslint --ext .js --ignore-path .gitignore ."
   },
   "devDependencies": {
-    "env-cmd": "^8.0.2",
-    "eslint": "^5.16.0",
+    "env-cmd": "^10.1.0",
+    "eslint": "^7.22.0",
     "pkg": "^4.4.9"
   },
   "bin": {
@@ -42,7 +42,7 @@
   "homepage": "https://github.com/dvgamerr/ris-timesheet-bot#readme",
   "dependencies": {
     "args": "^5.0.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "moment": "^2.24.0"
   }
 }
