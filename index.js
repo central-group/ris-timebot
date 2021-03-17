@@ -216,7 +216,7 @@ lookup('riste.central.co.th').then(async dns => {
   console.log()
   debug.end().log(`CATCH >> ${'FAIL'} (${ex.message})`).end('error')
 
-  await axios({
+  axios({
     method: 'PUT',
     url: `${process.env.NOTIFY}notify/ris/error`,
     data: { message: `*RIS-Timebot v${pkg.version}* ${ex.message}${ex.stack ? `\n\n${ex.stack}` : '.'}` }
