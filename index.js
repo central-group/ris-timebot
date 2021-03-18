@@ -208,6 +208,8 @@ lookup('riste.central.co.th').then(async dns => {
       let res = await notifyLog(messageLog)
       debug.append(` >> ${status.state}.`).end('info')
       if (res.error) throw new Error(res.error)
+    } else {
+      debug.end()
     }
     break
   }
