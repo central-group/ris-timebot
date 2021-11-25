@@ -66,7 +66,7 @@ jobs:
     - name: Timesheet push time.
       run: npm start
       env:
-        NOTIFY: https://notice.touno.io/
+        NOTIFY: http://localhost:3000/
         TIME_EMPLOYEE: ${{ secrets.EMPLOYEE_ID }}
         TIME_PASSWORD: ${{ secrets.EMPLOYEE_PWD }}
         TIME_JOB: ${{ secrets.EMPLOYEE_JOB }}
